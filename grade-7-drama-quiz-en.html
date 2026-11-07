@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 7 Drama Revision Quiz</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-card {
+            margin-bottom: 20px;
+        }
+        .q-number {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .q-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+            font-weight: 600;
+        }
+        .option-btn.correct {
+            background: #d1fae5;
+            border-color: var(--success);
+            color: #065f46;
+        }
+        .option-btn.incorrect {
+            background: #fee2e2;
+            border-color: var(--error);
+            color: #991b1b;
+        }
+        .feedback-box {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .feedback-box.correct {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .feedback-box.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        .action-btn {
+            margin-top: 20px;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .action-btn:hover {
+            background: var(--primary-hover);
+        }
+        .action-btn:disabled {
+            background: var(--border);
+            color: var(--text-light);
+            cursor: not-allowed;
+        }
+        .results-screen {
+            text-align: center;
+            display: none;
+        }
+        .score-badge {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <h1>🎭 Grade 7 Drama Revision Quiz</h1>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="quizContainer">
+        <div class="question-card">
+            <div class="q-number" id="qNumber">Question 1 of 10</div>
+            <div class="q-text" id="qText">Loading question...</div>
+            <div class="options-list" id="optionsList"></div>
+            <div class="feedback-box" id="feedbackBox"></div>
+        </div>
+        <button class="action-btn" id="nextBtn" onclick="handleNext()" disabled>Submit Answer</button>
+    </div>
+
+    <div class="results-screen" id="resultsScreen">
+        <h2>🎉 Quiz Completed!</h2>
+        <p>Your Final Score:</p>
+        <div class="score-badge" id="finalScore">0 / 10</div>
+        <p id="scoreMessage" style="color: var(--text-light); margin-bottom: 24px;"></p>
+        <button class="action-btn" onclick="restartQuiz()">Retake Quiz</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {
+        question: "Which drama element refers specifically to how high or low a speaker's voice sounds?",
+        options: ["Pace", "Pitch", "Dialogue", "Focus"],
+        correct: 1
+    },
+    {
+        question: "What term is defined as the main struggle or problem between characters that drives the plot forward?",
+        options: ["Conflict", "Dramatized Prose", "Characterization", "Setting"],
+        correct: 0
+    },
+    {
+        question: "In a dramatic scene where a character is panicked and shouting about a rising river, what physical action best demonstrates panic?",
+        options: ["Standing completely still and smiling", "Pacing nervously and stopping abruptly", "Sitting cross-legged on the floor", "Laying down to take a nap"],
+        correct: 1
+    },
+    {
+        question: "How should a performer's vocal delivery shift when moving from a panicked shout about danger to a sudden warning whisper?",
+        options: ["From quiet whisper to loud shouting", "From high volume and high energy to a low, cautious whisper", "From singing a melody to speaking flatly", "No change is needed"],
+        correct: 1
+    },
+    {
+        question: "When portraying a character who is calm, composed, and rational during a crisis, which posture is most effective?",
+        options: ["Slumped shoulders with a downward gaze", "Standing upright and tall with a stable stance", "Running back and forth erratically", "Hiding behind another actor"],
+        correct: 1
+    },
+    {
+        question: "Which of the following is a traditional performance technique commonly used in Indigenous African storytelling?",
+        options: ["Silent film projection", "Call-and-response", "Slide presentation", "Ballet pointe shoes"],
+        correct: 1
+    },
+    {
+        question: "How does the role of the audience in Indigenous storytelling primarily differ from a passive modern theatre audience?",
+        options: ["They must remain completely silent and motionless", "They are active participants who reply to calls, sing refrains, and clap rhythmically", "They are blindfolded during the entire performance", "They write the script while watching"],
+        correct: 1
+    },
+    {
+        question: "What is the best definition of 'dramatized prose' in theatrical performance?",
+        options: ["Reading a story silently in a library", "Adapting a written narrative into a live performance using physical action and vocal expression", "Writing a poem on a chalkboard", "Publishing a novel online"],
+        correct: 1
+    },
+    {
+        question: "What is a primary purpose of passing down indigenous stories and oral traditions across generations?",
+        options: ["To practice commercial advertising", "To pass down cultural values, teach moral conduct, and preserve heritage", "To test computer programming skills", "To learn modern financial accounting"],
+        correct: 1
+    },
+    {
+        question: "In drama terminology, what does 'focus' mean on stage?",
+        options: ["Turning off all stage lights completely", "Directing the audience's attention to a specific spot, object, or performer", "Speaking as fast as possible", "Ignoring the audience entirely"],
+        correct: 1
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selectedOption = null;
+let isAnswerSubmitted = false;
+
+const qNumberEl = document.getElementById("qNumber");
+const qTextEl = document.getElementById("qText");
+const optionsListEl = document.getElementById("optionsList");
+const feedbackBoxEl = document.getElementById("feedbackBox");
+const nextBtnEl = document.getElementById("nextBtn");
+const progressFillEl = document.getElementById("progressFill");
+const quizContainerEl = document.getElementById("quizContainer");
+const resultsScreenEl = document.getElementById("resultsScreen");
+const finalScoreEl = document.getElementById("finalScore");
+const scoreMessageEl = document.getElementById("scoreMessage");
+
+function loadQuestion() {
+    isAnswerSubmitted = false;
+    selectedOption = null;
+    feedbackBoxEl.className = "feedback-box";
+    feedbackBoxEl.innerHTML = "";
+    nextBtnEl.innerText = "Submit Answer";
+    nextBtnEl.disabled = true;
+
+    const q = quizData[currentQuestion];
+    qNumberEl.innerText = `Question ${currentQuestion + 1} of ${quizData.length}`;
+    qTextEl.innerText = q.question;
+    progressFillEl.style.width = `${((currentQuestion) / quizData.length) * 100}%`;
+
+    optionsListEl.innerHTML = "";
+    q.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => selectOption(index, btn);
+        optionsListEl.appendChild(btn);
+    });
+}
+
+function selectOption(index, btn) {
+    if (isAnswerSubmitted) return;
+    document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedOption = index;
+    nextBtnEl.disabled = false;
+}
+
+function handleNext() {
+    if (!isAnswerSubmitted) {
+        isAnswerSubmitted = true;
+        const q = quizData[currentQuestion];
+        const buttons = document.querySelectorAll(".option-btn");
+
+        buttons.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === q.correct) {
+                btn.classList.add("correct");
+            } else if (idx === selectedOption) {
+                btn.classList.add("incorrect");
+            }
+        });
+
+        if (selectedOption === q.correct) {
+            score++;
+            feedbackBoxEl.className = "feedback-box correct";
+            feedbackBoxEl.innerHTML = "✅ <strong>Correct!</strong> Excellent work.";
+        } else {
+            feedbackBoxEl.className = "feedback-box incorrect";
+            feedbackBoxEl.innerHTML = `❌ <strong>Incorrect.</strong> The correct answer is: <em>${q.options[q.correct]}</em>`;
+        }
+
+        if (currentQuestion < quizData.length - 1) {
+            nextBtnEl.innerText = "Next Question →";
+        } else {
+            nextBtnEl.innerText = "View Results";
+        }
+    } else {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+}
+
+function showResults() {
+    quizContainerEl.style.display = "none";
+    resultsScreenEl.style.display = "block";
+    progressFillEl.style.width = "100%";
+    finalScoreEl.innerText = `${score} / ${quizData.length}`;
+
+    let msg = "";
+    const percentage = (score / quizData.length) * 100;
+    if (percentage >= 80) {
+        msg = "Excellent! You have a great understanding of Grade 7 Drama!";
+    } else if (percentage >= 50) {
+        msg = "Good job! You understand the main concepts well. Keep practicing!";
+    } else {
+        msg = "Don't worry! Review your notes and try again to improve your score.";
+    }
+    scoreMessageEl.innerText = msg;
+}
+
+function restartQuiz() {
+    currentQuestion = 0;
+    score = 0;
+    quizContainerEl.style.display = "block";
+    resultsScreenEl.style.display = "none";
+    loadQuestion();
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
